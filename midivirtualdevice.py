@@ -38,12 +38,12 @@ class MidiVirtualDevice(object):
 
         """
 
-
         # Singleton check (can't run multiple mididings engines in the same process)
         if mididings.engine.active():
             print('Error: can\'t open multiple virtual midi devices in the same process (ports=%s, name=%s)' % (ports, name))
             return None
 
+        # construct mididings ports list
 
         self.ports = {}
 
@@ -96,7 +96,6 @@ class MidiVirtualDevice(object):
         thread = Thread(target=mididings.run, args=[self.patch])
         thread.daemon = True
         thread.start()
-
 
         # get virtual device ports ids as seen by port midi
         # and store them in self.ports
