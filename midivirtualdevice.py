@@ -15,7 +15,7 @@ class MidiVirtualDevice(object):
     """
 
     PM_PREFIX = 'PYO_'
-    ALSA_PREFIX = 'ALSA_'
+    ALSA_PREFIX = ''
 
     def __init__(self, ports, name='Pyo Virtal MIDI'):
         """
