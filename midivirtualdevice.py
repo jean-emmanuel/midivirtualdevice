@@ -9,7 +9,14 @@ import mididings
 class MidiVirtualDevice(object):
     """
     Virtual ALSA MIDI Device for pyo.
+
+    - ports prefixed with PM_PREFIX must not be connected via ALSA (pyo only)
+    - ports prefixed with ALSA_PREFIX must not be connected via pyo (ALSA only)
+
     """
+
+    PM_PREFIX = 'PYO_'
+    ALSA_PREFIX = 'ALSA_'
 
     def __init__(self, ports, name='Pyo Virtal MIDI'):
         """
@@ -20,24 +27,6 @@ class MidiVirtualDevice(object):
             ports (str|list): port's name or list of ports to open
             name      (name): device's name (for ALSA)
 
-
-        This will create a virtual midi device with the following ports:
-        (where PORT is the port's name)
-
-        Inputs:
-
-            _pyo_out_PORT : pyo's midi output (don't connect it with ALSA/Jack)
-            PORT_in       : ALSA midi input (internally routed to _pyo_in_PORT)
-
-        Outputs:
-
-            _pyo_in_PORT : pyo's midi input (don't connect it with ALSA/Jack)
-            PORT_out     : ALSA midi output (internally routed to _pyo_out_PORT)
-
-
-        There's no error here: ALSA's midi inputs are outputs for pyo/portmidi
-                               and vice-versa
-
         Usage:
 
             from pyo import *
@@ -47,7 +36,6 @@ class MidiVirtualDevice(object):
 
             listen = MidiListener(midicall, virtual.ports['test']['in'])
             dispatch = MidiDispatcher(virtual.ports['test']['out'])
-
 
         """
 
@@ -66,15 +54,18 @@ class MidiVirtualDevice(object):
         self._alsa_in_ports = []
         self._alsa_out_ports = []
 
+        x = -1
         for port in ports:
+
+            x += 1
 
             self.ports[port] = {}
 
-            self._alsa_in_ports.insert(0,'_pyo_%s_out' % port)
-            self._alsa_out_ports.insert(0,'_pyo_%s_in' % port)
+            self._alsa_in_ports.insert(x,'%s%s' % (self.PM_PREFIX, port))
+            self._alsa_out_ports.insert(x,'%s%s' % (self.PM_PREFIX, port))
 
-            self._alsa_in_ports.append('%s_in' % port)
-            self._alsa_out_ports.append('%s_out' % port)
+            self._alsa_in_ports.append('%s%s_in' % (self.ALSA_PREFIX, port))
+            self._alsa_out_ports.append('%s%s_out' % (self.ALSA_PREFIX, port))
 
 
         # set mididings config
@@ -93,10 +84,10 @@ class MidiVirtualDevice(object):
 
         for port in self.ports:
             self.patch.append(
-                mididings.PortFilter('_pyo_%s_out' % port) >> mididings.Port('%s_out' % port),
+                mididings.PortFilter('%s%s' % (self.PM_PREFIX, port)) >> mididings.Port('%s%s_out' % (self.ALSA_PREFIX, port)),
             )
             self.patch.append(
-                mididings.PortFilter('%s_in' % port) >> mididings.Port('_pyo_%s_in' % port)
+                mididings.PortFilter('%s%s_in' % (self.ALSA_PREFIX, port)) >> mididings.Port('%s%s' % (self.PM_PREFIX, port))
             )
 
         # start mididings engine
@@ -117,13 +108,13 @@ class MidiVirtualDevice(object):
             x = -1
             for name in pm_input_devices[0]:
                 x += 1
-                if name == '_pyo_%s_in' % port:
+                if name == '%s%s' % (self.PM_PREFIX, port):
                     self.ports[port]['in'] = pm_input_devices[1][x]
 
             x = -1
             for name in pm_output_devices[0]:
                 x += 1
-                if name == '_pyo_%s_out' % port:
+                if name == '%s%s' % (self.PM_PREFIX, port):
                     self.ports[port]['out'] = pm_output_devices[1][x]
 
     def stop(self, *args):
