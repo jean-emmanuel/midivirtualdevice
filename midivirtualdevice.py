@@ -2,7 +2,6 @@
 
 from pyo import pm_get_input_devices, pm_get_output_devices
 from threading import Thread
-from signal import signal, SIGINT, SIGTERM
 
 import mididings
 
@@ -91,6 +90,8 @@ class MidiVirtualDevice(object):
             )
 
         # start mididings engine
+        # for now, we use deamon thread, simple but not very clean
+        # (mididings doesn't quit properly sometimes)
 
         thread = Thread(target=mididings.run, args=[self.patch])
         thread.daemon = True
