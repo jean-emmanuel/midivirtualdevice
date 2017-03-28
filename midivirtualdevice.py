@@ -42,7 +42,7 @@ class MidiVirtualDevice(object):
 
         if mididings.engine.active():
             mididings.engine.quit()
-            raise RuntimeError('can\'t open multiple virtual midi devices in the same process.')
+            raise RuntimeError('can\'t create multiple virtual midi devices in the same process.')
 
         # construct mididings ports list
 
