@@ -41,6 +41,7 @@ class MidiVirtualDevice(object):
         # Singleton check (can't run multiple mididings engines in the same process)
 
         if mididings.engine.active():
+            mididings.engine.quit()
             raise RuntimeError('can\'t open multiple virtual midi devices in the same process.')
 
         # construct mididings ports list
