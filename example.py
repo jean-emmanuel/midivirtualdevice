@@ -9,7 +9,7 @@ from time import sleep
 virtual = MidiVirtualDevice(['test'])
 
 
-# Listen on virtual.ports['test']['out'] and print received midi
+# Listen on virtual.ports['test']['in'] and print received midi
 
 def midicall(*args):
     print(args)
